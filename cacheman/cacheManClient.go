@@ -11,11 +11,14 @@ import (
 
 type Client struct {
 	Address string
+	client  *http.Client
 }
 
 // BuildClient returns a cacheMan client to access a cache at the passed address
 func BuildClient(address string) *Client {
-	return &Client{Address: address}
+	return &Client{Address: address, client: &http.Client{
+		Timeout: time.Second * 20,
+	}}
 }
 
 // Ping to check if server is live returns error if unavailable
@@ -34,10 +37,7 @@ func (c *Client) Ping() error {
 // Put adds the passed value into the cache and evicts records to make space
 func (c *Client) Put(key string, value []byte) error {
 	url := fmt.Sprint("http://", c.Address, "/", key)
-	client := &http.Client{
-		Timeout: time.Second * 10,
-	}
-	resp, err := client.Post(url, "-", bytes.NewReader(value))
+	resp, err := c.client.Post(url, "-", bytes.NewReader(value))
 	defer resp.Body.Close()
 	if err != nil {
 		return errors.New("could not add record")
