@@ -15,16 +15,16 @@ type Client struct {
 }
 
 // BuildClient returns a cacheMan client to access a cache at the passed address
-func BuildClient(address string) *Client {
+func BuildClient(address string, timeout time.Duration) *Client {
 	return &Client{Address: address, client: &http.Client{
-		Timeout: time.Second * 20,
+		Timeout: timeout,
 	}}
 }
 
 // Ping to check if server is live returns error if unavailable
 func (c *Client) Ping() error {
 	url := fmt.Sprint("http://", c.Address, "/ping")
-	resp, err := http.Get(url)
+	resp, err := c.client.Get(url)
 	if err != nil {
 		return errors.New("could not reach cacheman server")
 	}
@@ -51,7 +51,7 @@ func (c *Client) Put(key string, value []byte) error {
 // Get fetches stored record from cache
 func (c *Client) Get(key string) ([]byte, error) {
 	url := fmt.Sprint("http://", c.Address, "/", key)
-	resp, err := http.Get(url)
+	resp, err := c.client.Get(url)
 	if err != nil {
 		return nil, errors.New("could not get record")
 	}
