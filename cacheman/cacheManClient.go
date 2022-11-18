@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type Client struct {
@@ -33,14 +34,18 @@ func (c *Client) Ping() error {
 // Put adds the passed value into the cache and evicts records to make space
 func (c *Client) Put(key string, value []byte) error {
 	url := fmt.Sprint("http://", c.Address, "/", key)
-	resp, err := http.Post(url, "-", bytes.NewReader(value))
+	client := &http.Client{
+		Timeout: time.Second * 10,
+	}
+	resp, err := client.Post(url, "-", bytes.NewReader(value))
+	defer resp.Body.Close()
 	if err != nil {
 		return errors.New("could not add record")
 	}
 	if resp.StatusCode != 200 {
 		return errors.New("could not add record")
 	}
-	resp.Body.Close()
+
 	return nil
 }
 
