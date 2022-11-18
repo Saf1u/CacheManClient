@@ -38,7 +38,6 @@ func (c *Client) Ping() error {
 func (c *Client) Put(key string, value []byte) error {
 	url := fmt.Sprint("http://", c.Address, "/", key)
 	resp, err := c.client.Post(url, "-", bytes.NewReader(value))
-	defer resp.Body.Close()
 	if err != nil {
 		return errors.New("could not add record")
 	}
